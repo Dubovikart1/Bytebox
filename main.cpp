@@ -11,8 +11,8 @@ string dbname = "~/projects/bytebox";
 
 namespace f{
     void init(){
-        fs::current_path() = "~";
-        db[0] = {};
+        fs::current_path("~");
+        db.push_back({});
         ifstream initf(dbname);
         string buf;
         if(initf.is_open()){
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]){
         cerr << "Error: No arguments\n";
         return 1;
     }
-    for(int i = 1;i <= argc; i++){
+    for(int i = 1;i < argc; i++){
         arg.push_back(argv[i]);
     }
     f::init();
@@ -100,11 +100,14 @@ int main(int argc, char* argv[]){
         it::getline(id);
     } else if(cmd == "get"){
         int x = stoi(arg[1]);
-        int y = stoi(arg[1]);
+        int y = stoi(arg[2]);
         it::dbget(x,y);
     } else if(cmd == "addrow"){
         db[0].push_back(arg[1]);
     } else if(cmd == "add"){
         it::dbadd(arg);
+    }
+    if(db.size() != 0){
+        f::write();
     }
 }
