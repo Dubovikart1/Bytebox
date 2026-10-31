@@ -278,6 +278,103 @@ namespace it
         }
     } 
     
+    namespace uniqv
+    {
+        string keyval(string s, bool num, bool ci){
+            if(num){
+                long long x;
+                if(sortv::tonum(s, x)){
+                    return to_string(x);
+                }
+            }
+            if(ci){
+                s = sortv::lower(s);
+            }
+            return s;
+        }
+
+        string keyrow(const vector<string> &r, int w, bool num, bool ci){
+            string k;
+            for(int i = 0; i < w; i++){
+                k += keyval(i < (int)r.size() ? r[i] : "", num, ci);
+                k += '\x1f';
+            }
+            return k;
+        }
+
+        bool uniquevals(string col, bool ci, bool num, bool count){
+            int w = 0;
+            for(int i = 0; i < (int)db.size(); i++){
+                w = max(w, (int)db[i].size());
+            }
+            int c = 0;
+            if(col != "ALL"){
+                long long x;
+                if(!sortv::tonum(col, x) || x < 0 || x >= w) return false;
+                c = (int)x;
+            }
+            vector<string> vals;
+            vector<int> cnt;
+            map<string, int> pos;
+            for(int i = 1; i < (int)db.size(); i++){
+                string key, shown;
+                if(col == "ALL"){
+                    key = keyrow(db[i], w, num, ci);
+                    for(int j = 0; j < (int)db[i].size(); j++){
+                        if(j != 0) shown += ' ';
+                        shown += db[i][j];
+                    }
+                } else {
+                    bool has = c < (int)db[i].size();
+                    key = keyval(has ? db[i][c] : "", num, ci);
+                    shown = has ? db[i][c] : "";
+                }
+                if(pos.find(key) == pos.end()){
+                    pos[key] = (int)vals.size();
+                    vals.push_back(shown);
+                    cnt.push_back(1);
+                } else {
+                    cnt[pos[key]]++;
+                }
+            }
+            for(int i = 0; i < (int)vals.size(); i++){
+                if(count){
+                    cout << vals[i] << " " << cnt[i] << "\n";
+                } else {
+                    cout << vals[i] << "\n";
+                }
+            }
+            return true;
+        }
+    } 
+    
+    namespace renamev
+    {
+        bool renamecol(string col, string name){
+            if(db.empty() || db[0].empty() || name.empty()) return false;
+            int w = (int)db[0].size();
+            int c = -1;
+            long long x;
+            if(sortv::tonum(col, x)){
+                if(x < 0 || x >= w) return false;
+                c = (int)x;
+            } else {
+                for(int i = 0; i < w; i++){
+                    if(db[0][i] == col){
+                        c = i;
+                        break;
+                    }
+                }
+                if(c < 0) return false;
+            }
+            for(int i = 0; i < w; i++){
+                if(i != c && db[0][i] == name) return false;
+            }
+            db[0][c] = name;
+            return true;
+        }
+    } 
+    
     namespace del{
         void del(int x, int y){
             if (x > 0 && x < (int)db.size() && y >= 0 && y < (int)db[x].size()) {
@@ -392,6 +489,16 @@ bool interpretator(string cmd){
             return false;
         }
         changed = true;
+    } else if(cmd == "renamecol" || cmd == "rename"){
+        if(args.size() != 3){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        if(!it::renamev::renamecol(args[1], args[2])){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        changed = true;
     } else if(cmd == "sort"){
         if(args.size() < 2){
             cerr << "Error: wrong arguments\n";
@@ -424,6 +531,30 @@ bool interpretator(string cmd){
             it::read();
         } else {
             changed = true;
+        }
+    } else if(cmd == "unique" || cmd == "uniq"){
+        if(args.size() < 2){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        bool ci = false, num = false, count = false;
+        for(int i = 2; i < (int)args.size(); i++){
+            if(args[i] == "ci"){
+                ci = true;
+            } else if(args[i] == "num"){
+                num = true;
+            } else if(args[i] == "str"){
+                num = false;
+            } else if(args[i] == "count"){
+                count = true;
+            } else {
+                cerr << "Error: wrong arguments\n";
+                return false;
+            }
+        }
+        if(!it::uniqv::uniquevals(args[1], ci, num, count)){
+            cerr << "Error: wrong arguments\n";
+            return false;
         }
     } else if(cmd == "delete"){
         int x, y;

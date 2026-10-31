@@ -2,7 +2,7 @@ Bytebox help menu:
 
 <> - Required argument
 [] - Optional elements
- | - Or
+|  - Or
 
 The first row is the header. Row IDs start at 1; the header is row 0.
 Values are separated by spaces, so a single value cannot contain a space.
@@ -25,9 +25,13 @@ set/
     setrow <row> <value...>    - replace a row; value count must equal row width
     setcol <column> <value...> - replace a column; one value per row with this column
 
+rename/
+    renamecol <column|name> <new_name> - rename a column in the header
+        The column can be given by index or by its current name.
+        Duplicate column names are rejected.
+
 sort/
     sort <column|ALL> [asc|desc] [str|num] [ci] [view] - sort data rows
-
         <column>  column index to sort by
         ALL       sort by all columns, left to right
         asc       ascending order (default)
@@ -43,6 +47,22 @@ sort/
             sort 0              sort by the first column as text, ascending
             sort 2 desc num     sort by the third column numerically, descending
             sort ALL ci view    sort by all columns, ignore case, print only
+
+unique/
+    unique <column|ALL> [ci] [num] [count] - print unique values or rows
+        <column>  print unique values of one column
+        ALL       print unique rows, compared left to right
+        ci        ignore case when comparing text
+        num       compare values as integers; non-numeric values count as text
+        str       compare values as text (default)
+        count     print the number of occurrences after each value
+
+        Values are printed in order of first appearance. The database is not changed.
+
+        Examples:
+            unique 0            unique values of the first column
+            unique 1 ci count   unique values ignoring case, with counts
+            unique ALL num      unique rows, with numeric comparison
 
 delete/
     delete <row> <column> - clear one element
