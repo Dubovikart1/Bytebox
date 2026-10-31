@@ -1,0 +1,22 @@
+Bytebox help menu:
+
+<> - Required argument
+[] - Optional elements
+
+help - show this menu
+
+read - print the entire database
+
+get/
+    get <row> <column>    - print an element from the database
+    getrow <row>          - print a row from the database
+    getline <line>        - print a line from the database
+
+add/
+    add [elements]        - add a new line to the database
+    addrow <row_name>     - add a new row to the database
+
+delete/
+    delete <row> <column> - delete an element from the database
+    delrow <row>          - delete a row from the database
+    delline <line>        - delete a line from the database

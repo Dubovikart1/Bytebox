@@ -6,26 +6,32 @@ namespace fs = filesystem;
 using ll = long long;
 
 vector<vector<string>> db;
-
-string dbname = "~/projects/bytebox";
+string dbname = "database.db";
 
 namespace f{
     void init(){
-        fs::current_path("~");
-        db.push_back({});
+        ifstream dbnf("env/dbname");
+        if(dbnf.is_open()){
+            dbnf >> dbname;
+        }
+        dbnf.close();
+        db.clear();   
         ifstream initf(dbname);
         string buf;
         if(initf.is_open()){
             while(getline(initf, buf)){
                 vector<string> v;
                 string bv;
-                for(int i = 0;i < buf.size();i++){
-                    if(buf[i]!=' '){
+                for(int i = 0; i < buf.size(); i++){
+                    if(buf[i] != ' '){
                         bv += buf[i];
                     } else {
                         v.push_back(bv);
                         bv = "";
                     }
+                }
+                if(!bv.empty()){
+                    v.push_back(bv);
                 }
                 db.push_back(v);
             }
@@ -35,48 +41,97 @@ namespace f{
 
     void write(){
         ofstream outf(dbname);
-        for(int i = 0;i < db.size();i++){
-            for(int j = 0;j < db[0].size();j++){
+        for(int i = 0; i < db.size(); i++){
+            for(int j = 0; j < db[i].size(); j++){
                 outf << db[i][j] << ' ';
             }
-            cout << "\n";
+            outf << "\n";
         }
     }
 }
 
-namespace it{
+namespace it
+{
+    void help(){
+        ifstream helpfile("env/help.txt");
+        if(helpfile.is_open()){
+            string buf;
+            while(getline(helpfile, buf)){
+                cout << buf << "\n";
+            }
+        }
+        helpfile.close();
+    }
+
     void read(){
-        for(int i = 0;i < db.size();i++){
-            for(int j = 0;j < db[0].size();j++){
+        for(int i = 0; i < db.size(); i++){
+            for(int j = 0; j < db[i].size(); j++){
                 cout << db[i][j] << ' ';
             }
             cout << "\n";
         }
     }
 
-    void getrow(int id){
-        for(int i = 0;i < db.size();i++){
-            cout << db[i][id] << "\n";
+    namespace add
+    {
+        void dbadd(vector<string> arg){
+            vector<string> buf;
+            for(int i = 1; i < arg.size(); i++){
+                buf.push_back(arg[i]);
+            }
+            db.push_back(buf);
+        }
+        void addrow(string a){
+            if (db.empty()) {
+                db.push_back({});
+            }
+            db[0].push_back(a);
+        }
+    } 
+    namespace get
+    {
+        void getrow(int id){
+            for(int i = 0; i < db.size(); i++){
+                if (id >= 0 && id < db[i].size()) {
+                    cout << db[i][id] << "\n";
+                }
+            }
+        }
+
+        void getline(int id){
+            if (id >= 0 && id < db.size()) {
+                for(int i = 0; i < db[id].size(); i++){
+                    cout << db[id][i] << "\n";
+                }
+            }
+        }
+
+        void dbget(int x, int y){
+            if (x >= 0 && x < db.size() && y >= 0 && y < db[x].size()) {
+                cout << db[x][y];
+            }
+        }
+    } 
+    
+    namespace del{
+        void del(int x, int y){
+        if (x >= 0 && x < db.size() && y >= 0 && y < db[x].size()) {
+            db[x].erase(db[x].begin() + y);
         }
     }
 
-    void getline(int id){
-        for(int i = 0;i < db[id].size();i++){
-            cout << db[id][i] << "\n";
+        void delline(int x){
+            for(int i = 0;i < db[x].size();i++){
+                db[x].erase(db[x].begin() + i);
+            }
         }
-    }
 
-    void dbget(int x, int y){
-        cout << db[x][y];
-    }
-
-    void dbadd(vector<string> arg){
-        vector<string> buf;
-        for(int i = 1;i < arg.size();i++){
-            buf.push_back(arg[i]);
+        void delrow(int x){
+            for(int i = 0;i < db.size();i++){
+                db[i].erase(db[i].begin() + x);
+            }
         }
-        db.push_back(buf);
-    }
+    } 
 }
 
 int main(int argc, char* argv[]){
@@ -85,7 +140,7 @@ int main(int argc, char* argv[]){
         cerr << "Error: No arguments\n";
         return 1;
     }
-    for(int i = 1;i < argc; i++){
+    for(int i = 1; i < argc; i++){
         arg.push_back(argv[i]);
     }
     f::init();
@@ -94,20 +149,34 @@ int main(int argc, char* argv[]){
         it::read();
     } else if(cmd == "getrow"){
         int id = stoi(arg[1]);
-        it::getrow(id);
+        it::get::getrow(id);
     } else if(cmd == "getline"){
         int id = stoi(arg[1]);
-        it::getline(id);
+        it::get::getline(id);
     } else if(cmd == "get"){
         int x = stoi(arg[1]);
         int y = stoi(arg[2]);
-        it::dbget(x,y);
+        it::get::dbget(x, y);
     } else if(cmd == "addrow"){
-        db[0].push_back(arg[1]);
+        it::add::addrow(arg[1]);
     } else if(cmd == "add"){
-        it::dbadd(arg);
+        it::add::dbadd(arg);
+    } else if(cmd == "delete"){
+        int x = stoi(arg[1]);
+        int y = stoi(arg[2]);
+        it::del::del(x,y);
+    } else if(cmd == "delline"){
+        int x = stoi(arg[1]);
+        it::del::delline(x);
+    } else if(cmd == "delrow"){
+        int x = stoi(arg[1]);
+        it::del::delrow(x);
+    } else if(cmd == "help"){
+        it::help();
     }
+
     if(db.size() != 0){
         f::write();
     }
+    return 0;
 }
