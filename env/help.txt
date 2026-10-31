@@ -2,26 +2,49 @@ Bytebox help menu:
 
 <> - Required argument
 [] - Optional elements
+ | - Or
+
+The first row is the header. Row IDs start at 1; the header is row 0.
+Values are separated by spaces, so a single value cannot contain a space.
 
 help - show this menu
 
-read - print the entire database
+read - print the whole database with IDs and aligned columns
 
 get/
-    get <row> <column>    - print an element from the database
-    getcol <column>       - print a column from the database
-    getrow <row>          - print a row from the database
+    get <row> <column>    - print one element
+    getcol <column>       - print a column (header excluded)
+    getrow <row>          - print a row (row 0 prints the header)
 
 add/
-    add [elements]        - add a new row to the database
-    addcol <column_name>  - add a new column to the database
+    add <element...>      - add a new row at the end
+    addcol <column_name>  - add a column name to the header
 
 set/
-    set <row> <column> <value> - replace an element in the database
-    setrow <row> <value...>    - replace a row in the database
-    setcol <column> <value...> - replace a column in the database
+    set <row> <column> <value> - replace one element
+    setrow <row> <value...>    - replace a row; value count must equal row width
+    setcol <column> <value...> - replace a column; one value per row with this column
+
+sort/
+    sort <column|ALL> [asc|desc] [str|num] [ci] [view] - sort data rows
+
+        <column>  column index to sort by
+        ALL       sort by all columns, left to right
+        asc       ascending order (default)
+        desc      descending order
+        str       compare values as text (default)
+        num       compare values as integers; non-numeric values go last
+        ci        ignore case when comparing text
+        view      print the sorted result without saving the database
+
+        The header stays in row 0. Missing and empty cells always go last.
+
+        Examples:
+            sort 0              sort by the first column as text, ascending
+            sort 2 desc num     sort by the third column numerically, descending
+            sort ALL ci view    sort by all columns, ignore case, print only
 
 delete/
-    delete <row> <column> - clear an element in the database
-    delrow <row>          - clear a row in the database
-    delcol <column>       - delete a column from the database
+    delete <row> <column> - clear one element
+    delrow <row>          - clear all values in a row (the row and its ID stay)
+    delcol <column>       - delete a column from the header and all rows

@@ -191,6 +191,93 @@ namespace it
         }
     } 
     
+    namespace sortv
+    {
+        bool tonum(string s, long long &x){
+            try{
+                size_t p = 0;
+                x = stoll(s, &p);
+                return p == s.size();
+            } catch(...){
+                return false;
+            }
+        }
+
+        string lower(string s){
+            for(int i = 0; i < (int)s.size(); i++){
+                if(s[i] >= 'A' && s[i] <= 'Z'){
+                    s[i] = s[i] - 'A' + 'a';
+                }
+            }
+            return s;
+        }
+
+        int cmp(string a, string b, bool num, bool ci){
+            if(num){
+                long long x, y;
+                bool ok1 = tonum(a, x);
+                bool ok2 = tonum(b, y);
+                if(ok1 && ok2){
+                    if(x < y) return -1;
+                    if(x > y) return 1;
+                    return 0;
+                }
+                if(ok1 != ok2){
+                    return ok1 ? -1 : 1;
+                }
+            }
+            if(ci){
+                a = lower(a);
+                b = lower(b);
+            }
+            if(a < b) return -1;
+            if(a > b) return 1;
+            return 0;
+        }
+
+        bool emptyc(const vector<string> &r, int c){
+            return c >= (int)r.size() || r[c].empty();
+        }
+
+        int cmpkey(const vector<string> &a, const vector<string> &b, const vector<int> &cols, bool desc, bool num, bool ci){
+            for(int i = 0; i < (int)cols.size(); i++){
+                int c = cols[i];
+                bool ea = emptyc(a, c);
+                bool eb = emptyc(b, c);
+                if(ea && eb) continue;
+                if(ea) return 1;
+                if(eb) return -1;
+                int r = cmp(a[c], b[c], num, ci);
+                if(r != 0){
+                    return desc ? -r : r;
+                }
+            }
+            return 0;
+        }
+
+        bool sortrows(string col, bool desc, bool num, bool ci){
+            if(db.size() < 2) return true;
+            int w = 0;
+            for(int i = 0; i < (int)db.size(); i++){
+                w = max(w, (int)db[i].size());
+            }
+            vector<int> cols;
+            if(col == "ALL"){
+                for(int j = 0; j < w; j++){
+                    cols.push_back(j);
+                }
+            } else {
+                long long x;
+                if(!tonum(col, x) || x < 0 || x >= w) return false;
+                cols.push_back((int)x);
+            }
+            stable_sort(db.begin() + 1, db.end(), [&](const vector<string> &a, const vector<string> &b){
+                return cmpkey(a, b, cols, desc, num, ci) < 0;
+            });
+            return true;
+        }
+    } 
+    
     namespace del{
         void del(int x, int y){
             if (x > 0 && x < (int)db.size() && y >= 0 && y < (int)db[x].size()) {
@@ -305,6 +392,39 @@ bool interpretator(string cmd){
             return false;
         }
         changed = true;
+    } else if(cmd == "sort"){
+        if(args.size() < 2){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        bool desc = false, num = false, ci = false, view = false;
+        for(int i = 2; i < (int)args.size(); i++){
+            if(args[i] == "desc"){
+                desc = true;
+            } else if(args[i] == "asc"){
+                desc = false;
+            } else if(args[i] == "num"){
+                num = true;
+            } else if(args[i] == "str"){
+                num = false;
+            } else if(args[i] == "ci"){
+                ci = true;
+            } else if(args[i] == "view"){
+                view = true;
+            } else {
+                cerr << "Error: wrong arguments\n";
+                return false;
+            }
+        }
+        if(!it::sortv::sortrows(args[1], desc, num, ci)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        if(view){
+            it::read();
+        } else {
+            changed = true;
+        }
     } else if(cmd == "delete"){
         int x, y;
         if(!toint(1, x) || !toint(2, y)){
