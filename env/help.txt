@@ -9,6 +9,10 @@ Values are separated by spaces, so a single value cannot contain a space.
 
 help - show this menu
 
+chdb <path> - switch the database file
+    The path is saved to env/dbname. The new database is created by the next
+    command that changes data. Relative paths are resolved from the current directory.
+
 read - print the whole database with IDs and aligned columns
 
 get/
@@ -29,6 +33,23 @@ rename/
     renamecol <column|name> <new_name> - rename a column in the header
         The column can be given by index or by its current name.
         Duplicate column names are rejected.
+
+replace/
+    replace <column|ALL> <old> <new> [ci] [num] - replace whole values
+        <column>  column index (the header is never changed)
+        ALL       replace in every cell of data rows
+        ci        ignore case when comparing text
+        num       compare values as integers; non-numeric values count as text
+        str       compare values as text (default)
+
+        Only whole values are matched, not substrings. Use "" as <old> to
+        replace empty cells. The database is written only if something changed.
+
+        Examples:
+            replace 0 alice ALICE
+            replace 1 berlin Berlin ci
+            replace 2 7 007 num
+            replace ALL "" n/a
 
 sort/
     sort <column|ALL> [asc|desc] [str|num] [ci] [view] - sort data rows

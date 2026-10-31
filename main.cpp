@@ -13,7 +13,10 @@ namespace f{
     void init(){
         ifstream dbnf("env/dbname");
         if(dbnf.is_open()){
-            dbnf >> dbname;
+            string buf;
+            if(getline(dbnf, buf) && !buf.empty()){
+                dbname = buf;
+            }
         }
         dbnf.close();
         db.clear();   
@@ -77,6 +80,19 @@ namespace it
             }
         }
         helpfile.close();
+    }
+
+    namespace dbv
+    {
+        bool setdb(string path){
+            if(path.empty()) return false;
+            ofstream cf("env/dbname");
+            if(!cf.is_open()) return false;
+            cf << path << "\n";
+            cf.close();
+            if(!cf) return false;
+            return true;
+        }
     }
 
     void read() {
@@ -375,6 +391,40 @@ namespace it
         }
     } 
     
+    namespace replacev
+    {
+        int replacevals(string col, string oldv, string newv, bool ci, bool num){
+            int w = 0;
+            for(int i = 0; i < (int)db.size(); i++){
+                w = max(w, (int)db[i].size());
+            }
+            int c = -1;
+            if(col != "ALL"){
+                long long x;
+                if(!sortv::tonum(col, x) || x < 0 || x >= w) return -1;
+                c = (int)x;
+            }
+            string key = uniqv::keyval(oldv, num, ci);
+            int cnt = 0;
+            for(int i = 1; i < (int)db.size(); i++){
+                if(c < 0){
+                    for(int j = 0; j < (int)db[i].size(); j++){
+                        if(uniqv::keyval(db[i][j], num, ci) == key && db[i][j] != newv){
+                            db[i][j] = newv;
+                            cnt++;
+                        }
+                    }
+                } else if(c < (int)db[i].size()){
+                    if(uniqv::keyval(db[i][c], num, ci) == key && db[i][c] != newv){
+                        db[i][c] = newv;
+                        cnt++;
+                    }
+                }
+            }
+            return cnt;
+        }
+    } 
+    
     namespace del{
         void del(int x, int y){
             if (x > 0 && x < (int)db.size() && y >= 0 && y < (int)db[x].size()) {
@@ -499,6 +549,32 @@ bool interpretator(string cmd){
             return false;
         }
         changed = true;
+    } else if(cmd == "replace"){
+        if(args.size() < 4){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        bool ci = false, num = false;
+        for(int i = 4; i < (int)args.size(); i++){
+            if(args[i] == "ci"){
+                ci = true;
+            } else if(args[i] == "num"){
+                num = true;
+            } else if(args[i] == "str"){
+                num = false;
+            } else {
+                cerr << "Error: wrong arguments\n";
+                return false;
+            }
+        }
+        int n = it::replacev::replacevals(args[1], args[2], args[3], ci, num);
+        if(n < 0){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        if(n > 0){
+            changed = true;
+        }
     } else if(cmd == "sort"){
         if(args.size() < 2){
             cerr << "Error: wrong arguments\n";
@@ -580,6 +656,11 @@ bool interpretator(string cmd){
         }
         it::del::delcol(x);
         changed = true;
+    } else if(cmd == "chdb"){
+        if(args.size() != 2 || !it::dbv::setdb(args[1])){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
     } else if(cmd == "help"){
         it::help();
     } else {
