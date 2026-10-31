@@ -151,6 +151,46 @@ namespace it
         }
     } 
     
+    namespace setv
+    {
+        bool setvalue(int x, int y, string val){
+            if (x > 0 && x < (int)db.size() && y >= 0 && y < (int)db[x].size()) {
+                db[x][y] = val;
+                return true;
+            }
+            return false;
+        }
+
+        bool setrow(int x, vector<string> vals){
+            if (x >= 0 && x < (int)db.size() && vals.size() == db[x].size()) {
+                for(int j = 0; j < (int)vals.size(); j++){
+                    db[x][j] = vals[j];
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool setcol(int y, vector<string> vals){
+            if (y < 0) return false;
+            int cnt = 0;
+            for(int i = 1; i < db.size(); i++){
+                if (y < (int)db[i].size()) {
+                    cnt++;
+                }
+            }
+            if (cnt == 0 || (int)vals.size() != cnt) return false;
+            int k = 0;
+            for(int i = 1; i < db.size(); i++){
+                if (y < (int)db[i].size()) {
+                    db[i][y] = vals[k];
+                    k++;
+                }
+            }
+            return true;
+        }
+    } 
+    
     namespace del{
         void del(int x, int y){
             if (x > 0 && x < (int)db.size() && y >= 0 && y < (int)db[x].size()) {
@@ -225,6 +265,45 @@ bool interpretator(string cmd){
             return false;
         }
         it::add::dbadd(args);
+        changed = true;
+    } else if(cmd == "set"){
+        int x, y;
+        if(args.size() != 4 || !toint(1, x) || !toint(2, y)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        if(it::setv::setvalue(x, y, args[3])){
+            changed = true;
+        }
+    } else if(cmd == "setrow"){
+        int x;
+        if(args.size() < 3 || !toint(1, x)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        vector<string> vals;
+        for(int i = 2; i < args.size(); i++){
+            vals.push_back(args[i]);
+        }
+        if(!it::setv::setrow(x, vals)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        changed = true;
+    } else if(cmd == "setcol"){
+        int y;
+        if(args.size() < 3 || !toint(1, y)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
+        vector<string> vals;
+        for(int i = 2; i < args.size(); i++){
+            vals.push_back(args[i]);
+        }
+        if(!it::setv::setcol(y, vals)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         changed = true;
     } else if(cmd == "delete"){
         int x, y;

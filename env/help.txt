@@ -8,15 +8,20 @@ help - show this menu
 read - print the entire database
 
 get/
-    get <column> <row>    - print an element from the database
+    get <row> <column>    - print an element from the database
     getcol <column>       - print a column from the database
-    getrow <row>         - print a row from the database
+    getrow <row>          - print a row from the database
 
 add/
     add [elements]        - add a new row to the database
     addcol <column_name>  - add a new column to the database
 
+set/
+    set <row> <column> <value> - replace an element in the database
+    setrow <row> <value...>    - replace a row in the database
+    setcol <column> <value...> - replace a column in the database
+
 delete/
-    delete <column> <row> - delete an element from the database
-    delrow <column>       - delete a column from the database
-    delline <row>         - delete a row from the database
+    delete <row> <column> - clear an element in the database
+    delrow <row>          - clear a row in the database
+    delcol <column>       - delete a column from the database
