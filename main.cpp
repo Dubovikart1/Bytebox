@@ -41,11 +41,14 @@ namespace f{
 
     void write(){
         ofstream outf(dbname);
-        for(int i = 0; i < db.size(); i++){
-            for(int j = 0; j < db[i].size(); j++){
-                outf << db[i][j] << ' ';
+        if(outf.is_open()){
+            outf.clear();
+            for(int i = 0; i < db.size(); i++){
+                for(int j = 0; j < db[i].size(); j++){
+                    outf << db[i][j] << ' ';
+                }
+                outf << "\n";
             }
-            outf << "\n";
         }
     }
 }
@@ -81,7 +84,7 @@ namespace it
             }
             db.push_back(buf);
         }
-        void addrow(string a){
+        void addcol(string a){
             if (db.empty()) {
                 db.push_back({});
             }
@@ -90,7 +93,7 @@ namespace it
     } 
     namespace get
     {
-        void getrow(int id){
+        void getcol(int id){
             for(int i = 0; i < db.size(); i++){
                 if (id >= 0 && id < db[i].size()) {
                     cout << db[i][id] << "\n";
@@ -98,7 +101,7 @@ namespace it
             }
         }
 
-        void getline(int id){
+        void getrow(int id){
             if (id >= 0 && id < db.size()) {
                 for(int i = 0; i < db[id].size(); i++){
                     cout << db[id][i] << "\n";
@@ -108,7 +111,7 @@ namespace it
 
         void dbget(int x, int y){
             if (x >= 0 && x < db.size() && y >= 0 && y < db[x].size()) {
-                cout << db[x][y];
+                cout << db[x][y] << "\n";
             }
         }
     } 
@@ -120,13 +123,13 @@ namespace it
         }
     }
 
-        void delline(int x){
+        void delrow(int x){
             for(int i = 0;i < db[x].size();i++){
                 db[x].erase(db[x].begin() + i);
             }
         }
 
-        void delrow(int x){
+        void delcol(int x){
             for(int i = 0;i < db.size();i++){
                 db[i].erase(db[i].begin() + x);
             }
@@ -147,34 +150,35 @@ int main(int argc, char* argv[]){
     string cmd = arg[0];
     if(cmd == "read"){
         it::read();
+    } else if(cmd == "getcol"){
+        int id = stoi(arg[1]);
+        it::get::getcol(id);
     } else if(cmd == "getrow"){
         int id = stoi(arg[1]);
         it::get::getrow(id);
-    } else if(cmd == "getline"){
-        int id = stoi(arg[1]);
-        it::get::getline(id);
     } else if(cmd == "get"){
         int x = stoi(arg[1]);
         int y = stoi(arg[2]);
         it::get::dbget(x, y);
-    } else if(cmd == "addrow"){
-        it::add::addrow(arg[1]);
+    } else if(cmd == "addcol"){
+        it::add::addcol(arg[1]);
     } else if(cmd == "add"){
         it::add::dbadd(arg);
     } else if(cmd == "delete"){
         int x = stoi(arg[1]);
         int y = stoi(arg[2]);
         it::del::del(x,y);
-    } else if(cmd == "delline"){
-        int x = stoi(arg[1]);
-        it::del::delline(x);
     } else if(cmd == "delrow"){
         int x = stoi(arg[1]);
         it::del::delrow(x);
+    } else if(cmd == "delcol"){
+        int x = stoi(arg[1]);
+        it::del::delcol(x);
     } else if(cmd == "help"){
         it::help();
+    } else {
+        cerr << "Error: wrong command\n";
     }
-
     if(db.size() != 0){
         f::write();
     }
