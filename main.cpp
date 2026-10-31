@@ -6,6 +6,7 @@ namespace fs = filesystem;
 using ll = long long;
 
 vector<vector<string>> db;
+vector<string> args;
 string dbname = "database.db";
 
 namespace f{
@@ -137,48 +138,50 @@ namespace it
     } 
 }
 
-int main(int argc, char* argv[]){
-    vector<string> arg;
-    if(argc < 2){
-        cerr << "Error: No arguments\n";
-        return 1;
-    }
-    for(int i = 1; i < argc; i++){
-        arg.push_back(argv[i]);
-    }
-    f::init();
-    string cmd = arg[0];
+void interpretator(string cmd){
     if(cmd == "read"){
         it::read();
     } else if(cmd == "getcol"){
-        int id = stoi(arg[1]);
+        int id = stoi(args[1]);
         it::get::getcol(id);
     } else if(cmd == "getrow"){
-        int id = stoi(arg[1]);
+        int id = stoi(args[1]);
         it::get::getrow(id);
     } else if(cmd == "get"){
-        int x = stoi(arg[1]);
-        int y = stoi(arg[2]);
+        int x = stoi(args[1]);
+        int y = stoi(args[2]);
         it::get::dbget(x, y);
     } else if(cmd == "addcol"){
-        it::add::addcol(arg[1]);
+        it::add::addcol(args[1]);
     } else if(cmd == "add"){
-        it::add::dbadd(arg);
+        it::add::dbadd(args);
     } else if(cmd == "delete"){
-        int x = stoi(arg[1]);
-        int y = stoi(arg[2]);
+        int x = stoi(args[1]);
+        int y = stoi(args[2]);
         it::del::del(x,y);
     } else if(cmd == "delrow"){
-        int x = stoi(arg[1]);
+        int x = stoi(args[1]);
         it::del::delrow(x);
     } else if(cmd == "delcol"){
-        int x = stoi(arg[1]);
+        int x = stoi(args[1]);
         it::del::delcol(x);
     } else if(cmd == "help"){
         it::help();
     } else {
         cerr << "Error: wrong command\n";
     }
+}
+
+int main(int argc, char* argv[]){
+    if(argc < 2){
+        cerr << "Error: No arguments\n";
+        return 1;
+    }
+    for(int i = 1; i < argc; i++)
+        args.push_back(argv[i]);
+    f::init();
+    string cmd = args[0];
+    interpretator(cmd);
     if(db.size() != 0){
         f::write();
     }
