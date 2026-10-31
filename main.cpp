@@ -67,10 +67,29 @@ namespace it
         helpfile.close();
     }
 
-    void read(){
-        for(int i = 0; i < db.size(); i++){
-            for(int j = 0; j < db[i].size(); j++){
-                cout << db[i][j] << ' ';
+    void read() {
+        if (db.empty()) return;
+        int r = db.size();
+        int wX = max(1, (int)to_string(r - 1).size());
+        int mc = 0;
+        for (int i = 0; i < r; i++) {
+            mc = max(mc, (int)db[i].size());
+        }
+        vector<int> cw(mc, 0);
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < (int)db[i].size(); j++) {
+                cw[j] = max(cw[j], (int)db[i][j].size());
+            }
+        }
+        for (int i = 0; i < r; i++) {
+            if (i == 0) {
+                cout << left << setw(wX + 2) << "ID";
+            } else {
+                cout << right << setw(wX) << i << "  ";
+            }
+
+            for (int j = 0; j < (int)db[i].size(); j++) {
+                cout << left << setw(cw[j] + 2) << db[i][j];
             }
             cout << "\n";
         }
@@ -137,6 +156,7 @@ namespace it
         }
     } 
 }
+
 
 void interpretator(string cmd){
     if(cmd == "read"){
