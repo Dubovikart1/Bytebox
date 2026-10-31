@@ -41,15 +41,27 @@ namespace f{
     }
 
     void write(){
-        ofstream outf(dbname);
-        if(outf.is_open()){
-            outf.clear();
-            for(int i = 0; i < db.size(); i++){
-                for(int j = 0; j < db[i].size(); j++){
-                    outf << db[i][j] << ' ';
-                }
-                outf << "\n";
+        string tmp = dbname + ".tmp";
+        ofstream outf(tmp);
+        if(!outf.is_open()){
+            cerr << "Error: cannot open database\n";
+            return;
+        }
+        for(int i = 0; i < db.size(); i++){
+            for(int j = 0; j < db[i].size(); j++){
+                outf << db[i][j] << ' ';
             }
+            outf << "\n";
+        }
+        outf.close();
+        if(!outf){
+            cerr << "Error: write failed\n";
+            return;
+        }
+        error_code ec;
+        fs::rename(tmp, dbname, ec);
+        if(ec){
+            cerr << "Error: rename failed\n";
         }
     }
 }
@@ -102,6 +114,9 @@ namespace it
             for(int i = 1; i < arg.size(); i++){
                 buf.push_back(arg[i]);
             }
+            if(db.empty()){
+                db.push_back({});
+            }
             db.push_back(buf);
         }
         void addcol(string a){
@@ -114,8 +129,8 @@ namespace it
     namespace get
     {
         void getcol(int id){
-            for(int i = 0; i < db.size(); i++){
-                if (id >= 0 && id < db[i].size()) {
+            for(int i = 1; i < db.size(); i++){
+                if (id >= 0 && id < (int)db[i].size()) {
                     cout << db[i][id] << "\n";
                 }
             }
@@ -138,58 +153,109 @@ namespace it
     
     namespace del{
         void del(int x, int y){
-        if (x >= 0 && x < db.size() && y >= 0 && y < db[x].size()) {
-            db[x].erase(db[x].begin() + y);
+            if (x > 0 && x < (int)db.size() && y >= 0 && y < (int)db[x].size()) {
+                db[x][y] = "";
+            }
         }
-    }
 
         void delrow(int x){
-            for(int i = 0;i < db[x].size();i++){
-                db[x].erase(db[x].begin() + i);
+            if (x > 0 && x < (int)db.size()) {
+                db[x].clear();
             }
         }
 
         void delcol(int x){
+            if (x < 0) return;
             for(int i = 0;i < db.size();i++){
-                db[i].erase(db[i].begin() + x);
+                if (x < (int)db[i].size()) {
+                    db[i].erase(db[i].begin() + x);
+                }
             }
         }
     } 
 }
 
 
-void interpretator(string cmd){
+bool toint(int i, int &x){
+    if(i >= (int)args.size()) return false;
+    try{
+        size_t p = 0;
+        x = stoi(args[i], &p);
+        return p == args[i].size();
+    } catch(...){
+        return false;
+    }
+}
+
+bool interpretator(string cmd){
+    bool changed = false;
     if(cmd == "read"){
         it::read();
     } else if(cmd == "getcol"){
-        int id = stoi(args[1]);
+        int id;
+        if(!toint(1, id)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::get::getcol(id);
     } else if(cmd == "getrow"){
-        int id = stoi(args[1]);
+        int id;
+        if(!toint(1, id)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::get::getrow(id);
     } else if(cmd == "get"){
-        int x = stoi(args[1]);
-        int y = stoi(args[2]);
+        int x, y;
+        if(!toint(1, x) || !toint(2, y)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::get::dbget(x, y);
     } else if(cmd == "addcol"){
+        if(args.size() < 2){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::add::addcol(args[1]);
+        changed = true;
     } else if(cmd == "add"){
+        if(args.size() < 2){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::add::dbadd(args);
+        changed = true;
     } else if(cmd == "delete"){
-        int x = stoi(args[1]);
-        int y = stoi(args[2]);
+        int x, y;
+        if(!toint(1, x) || !toint(2, y)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::del::del(x,y);
+        changed = true;
     } else if(cmd == "delrow"){
-        int x = stoi(args[1]);
+        int x;
+        if(!toint(1, x)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::del::delrow(x);
+        changed = true;
     } else if(cmd == "delcol"){
-        int x = stoi(args[1]);
+        int x;
+        if(!toint(1, x)){
+            cerr << "Error: wrong arguments\n";
+            return false;
+        }
         it::del::delcol(x);
+        changed = true;
     } else if(cmd == "help"){
         it::help();
     } else {
         cerr << "Error: wrong command\n";
     }
+    return changed;
 }
 
 int main(int argc, char* argv[]){
@@ -201,8 +267,7 @@ int main(int argc, char* argv[]){
         args.push_back(argv[i]);
     f::init();
     string cmd = args[0];
-    interpretator(cmd);
-    if(db.size() != 0){
+    if(interpretator(cmd)){
         f::write();
     }
     return 0;
