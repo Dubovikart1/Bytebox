@@ -15,6 +15,55 @@ chdb <path> - switch the database file
 
 read - print the whole database with IDs and aligned columns
 
+find/
+    find <value> [in <column|name|ALL>] [ci] [num|str] [substr] [ids|count]
+        Search data rows and print the matching rows with IDs.
+        in <column>  search only this column (default: ALL)
+        ci           ignore case
+        num          compare numbers numerically; non-numeric values are
+                     compared as text for = and !=
+        str          compare as text (default)
+        substr       match a substring instead of the whole value
+        ids          print only matching row IDs
+        count        print only the number of matching rows
+        The database is not changed.
+
+        Examples:
+            find alice
+            find berlin in city ci
+            find ann in name substr
+            find 42 in age num count
+
+where/
+    where <condition> [ci] [num|str] [ids|count] - filter rows
+        A condition is a boolean expression:
+            <column|name|ALL> <operator> <value>
+            <column|name|ALL> empty
+            <column|name|ALL> notempty
+            not <condition>
+            ( <condition> )
+            <condition> and <condition>
+            <condition> or <condition>
+
+        Operators: = == != < <= > >= contains starts ends
+        ALL matches when at least one cell satisfies the comparison.
+        Use not before a comparison to require that no cell matches.
+        By default matching rows are printed with IDs.
+        ids / count print only IDs or the number of matching rows.
+        ci ignores case; num compares numbers numerically; str compares as text.
+        With num, non-numeric values are text for = and !=; < <= > >= are false.
+        num cannot be used with contains/starts/ends.
+        The database is not changed.
+
+        Examples:
+            where age > 30 num
+            where city = berlin ci
+            where name contains a or name contains b
+            where age >= 18 and age < 65 num
+            where city empty
+            where not city = berlin ci
+            where name starts a ids
+
 get/
     get <row> <column>    - print one element
     getcol <column>       - print a column (header excluded)
@@ -89,3 +138,28 @@ delete/
     delete <row> <column> - clear one element
     delrow <row>          - clear all values in a row (the row and its ID stay)
     delcol <column>       - delete a column from the header and all rows
+
+run/
+    run <file> - execute a script
+        Commands are regular commands, one per line. Blank lines and lines
+        starting with # are ignored. if/elif check whether at least one data
+        row matches the condition. Close a block with end; blocks can be nested.
+            if <condition>
+                <commands...>
+            elif <condition>
+                <commands...>
+            else
+                <commands...>
+            end
+
+        Conditions use the same syntax and ci/num/str flags as where.
+        Changes are saved after each changing command.
+
+        Example:
+            if city = berlin ci
+                read
+            elif age > 30 num
+                where name contains a
+            else
+                find nobody
+            end
