@@ -1,3 +1,8 @@
+// ============================================================
+//  Bytebox
+//  Babelbo watermark
+// ============================================================
+
 #include <bits/stdc++.h>
 #include <filesystem>
 
@@ -9,6 +14,7 @@ vector<vector<string>> db;
 vector<string> args;
 string dbname = "database.db";
 
+// Babelbo :: storage
 namespace f{
     void init(){
         ifstream dbnf("env/dbname");
@@ -71,6 +77,7 @@ namespace f{
 
 bool interpretator(string cmd);
 
+// Babelbo :: interpreter
 namespace it
 {
     namespace view
@@ -365,6 +372,7 @@ namespace it
         }
     }
 
+    // Babelbo :: conditions
     namespace cond
     {
         enum class kind { cmp, and_, or_, not_ };
@@ -602,6 +610,7 @@ namespace it
         }
     }
 
+    // Babelbo :: find / where
     namespace query
     {
         bool findcmd(const vector<string>& arg){
@@ -995,6 +1004,7 @@ namespace it
         return false;
     }
 
+    // Babelbo :: script engine
     bool validatescript(const vector<string>& lines, string& err){
         vector<int> stack;
         for(int l = 0; l < (int)lines.size(); l++){
@@ -1213,6 +1223,7 @@ bool toint(int i, int &x){
     }
 }
 
+// Babelbo :: command dispatch
 bool interpretator(string cmd){
     bool changed = false;
     if(cmd == "read"){
@@ -1448,3 +1459,5 @@ int main(int argc, char* argv[]){
     }
     return 0;
 }
+
+// Babelbo :: end of file
